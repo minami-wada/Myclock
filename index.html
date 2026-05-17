@@ -38,15 +38,16 @@
             padding: 20px;
         }
 
-        /* 時間をドカンと大きく */
         #time {
             font-size: 22vw;
-            font-weight: 100;
-            /* 限界まで細くするのがポイント */
+            /* 1. フォントの太さを「100」に強制指定（これが超重要です） */
+            font-weight: 100 !important;
             color: #ffffff;
             line-height: 0.9;
             letter-spacing: -0.04em;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+            /* 2. iPhoneが確実に持っている英語フォントを先頭（左側）に指定する */
+            font-family: "Helvetica Neue", "Arial Legislative", sans-serif;
         }
 
         /* 日付は小さめ、かつ上品に */

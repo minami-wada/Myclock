@@ -1,33 +1,34 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Minimal Desk Clock</title>
+    <title>Clock</title>
+    
+    <!-- 1. Google Fonts から、世界中で使われている超おしゃれなフォント「Inter」の極細(100)と細め(200)を読み込む -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200&display=swap" rel="stylesheet">
+
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
         }
-
-        body,
-        html {
+        body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             width: 100%;
             overflow: hidden;
-            /* 最初の背景色（ダークグレー） */
-            background-color: #1a1a1a;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            /* 背景色が切り替わるときのスピード（2秒かけて滑らかに変化） */
+            background-color: #1a1a1a; 
+            /* 2. 読み込んだフォントを全体のデフォルトにする */
+            font-family: 'Inter', sans-serif;
             transition: background-color 2.0s ease-in-out;
         }
-
-        /* 画面中央に時計を配置 */
+        
         #clock-container {
             height: 100%;
             width: 100%;
@@ -40,28 +41,24 @@
 
         #time {
             font-size: 22vw;
-            /* 1. フォントの太さを「100」に強制指定（これが超重要です） */
-            font-weight: 100 !important;
+            /* 3. ここで極細(100)を指定。Google FontsなのでiPhoneでも確実にこの細さになります */
+            font-weight: 100; 
             color: #ffffff;
             line-height: 0.9;
             letter-spacing: -0.04em;
-
-            /* 2. iPhoneが確実に持っている英語フォントを先頭（左側）に指定する */
-            font-family: "Helvetica Neue", "Arial Legislative", sans-serif;
         }
 
-        /* 日付は小さめ、かつ上品に */
         #date {
             font-size: 3.5vw;
             color: #ffffff;
             opacity: 0.5;
-            /* 文字を半透明にして主役の時間を引き立てる */
             margin-top: 25px;
             letter-spacing: 0.15em;
+            /* 日付は少しだけ太く(200)してバランスを取る */
+            font-weight: 200;
         }
     </style>
 </head>
-
 <body>
 
     <div id="clock-container">
@@ -70,19 +67,16 @@
     </div>
 
     <script>
-        // --- 1. 時計のリアルタイム表示（秒数を消して、よりシンプルに） ---
+        // --- 時計のリアルタイム表示処理 ---
         const timeElement = document.getElementById('time');
         const dateElement = document.getElementById('date');
 
         function updateClock() {
             const now = new Date();
-
-            // 時間のフォーマット (時:分)
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             timeElement.textContent = `${hours}:${minutes}`;
 
-            // 日付のフォーマット (2026.05.17 SUN)
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const date = String(now.getDate()).padStart(2, '0');
@@ -92,30 +86,17 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- 2. 背景カラーを時々変える処理 ---
-        // インテリアに馴染みやすい、少しハスに構えた大人っぽいダークカラーのリスト
+        // --- 背景カラーを時々変える処理 ---
         const colors = [
-            '#1a1a1a', // チャコールブラック
-            '#2c3e50', // ミッドナイトブルー
-            '#2e3d30', // モスグリーン
-            '#3a2a35', // ディープバーガンディ
-            '#232b2b', // カッパーオニキス
-            '#34495e'  // スレートグレー
+            '#1a1a1a', '#2c3e50', '#2e3d30', '#3a2a35', '#232b2b', '#34495e'
         ];
-
         let colorIndex = 0;
-
         function changeBackgroundColor() {
             document.body.style.backgroundColor = colors[colorIndex];
-            // 次のカラーへ（最後までいったら最初に戻る）
             colorIndex = (colorIndex + 1) % colors.length;
         }
-
-        // 300000ミリ秒（5分ごと）に背景色を切り替える
-        // テスト用にもっと早く変えたい場合は、ここを 10000 (10秒) などにしてみてください
-        setInterval(changeBackgroundColor, 300000);
-        changeBackgroundColor(); // 初回実行
+        setInterval(changeBackgroundColor, 300000); // 5分ごと
+        changeBackgroundColor();
     </script>
 </body>
-
 </html>

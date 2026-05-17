@@ -1,117 +1,120 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Live Map Clock</title>
-    
-    <!-- Leaflet (地図ライブラリ) の読み込み -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+    <title>Minimal Desk Clock</title>
     <style>
-        body, html {
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background-color: #000;
+            /* 最初の背景色（ダークグレー） */
+            background-color: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            /* 背景色が切り替わるときのスピード（2秒かけて滑らかに変化） */
+            transition: background-color 2.0s ease-in-out;
         }
-        /* 地図を画面いっぱいに表示 */
-        #map {
-            width: 100%;
+
+        /* 画面中央に時計を配置 */
+        #clock-container {
             height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
-        /* 地図の上に重ねる時計のレイヤー */
-        #clock-overlay {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-family: sans-serif;
-            font-size: 24px;
-            font-weight: bold;
-            z-index: 10; /* 地図より上に表示 */
-            pointer-events: none; /* 時計が地図の操作を邪魔しないようにする */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+
+        /* 時間をドカンと大きく */
+        #time {
+            font-size: 22vw;
+            font-weight: 100;
+            /* 限界まで細くするのがポイント */
+            color: #ffffff;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        /* 日付は小さめ、かつ上品に */
+        #date {
+            font-size: 3.5vw;
+            color: #ffffff;
+            opacity: 0.5;
+            /* 文字を半透明にして主役の時間を引き立てる */
+            margin-top: 25px;
+            letter-spacing: 0.15em;
         }
     </style>
 </head>
+
 <body>
 
-    <div id="clock-overlay">00:00:00</div>
-    <div id="map"></div>
+    <div id="clock-container">
+        <div id="time">00:00</div>
+        <div id="date">2026.05.17 SUN</div>
+    </div>
 
     <script>
-        // 1. 時計の処理
+        // --- 1. 時計のリアルタイム表示（秒数を消して、よりシンプルに） ---
+        const timeElement = document.getElementById('time');
+        const dateElement = document.getElementById('date');
+
         function updateClock() {
             const now = new Date();
+
+            // 時間のフォーマット (時:分)
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock-overlay').textContent = `${hours}:${minutes}:${seconds}`;
+            timeElement.textContent = `${hours}:${minutes}`;
+
+            // 日付のフォーマット (2026.05.17 SUN)
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const dayList = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            dateElement.textContent = `${year}.${month}.${date} ${dayList[now.getDay()]}`;
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 2. 地図の初期化 (初期位置は東京駅付近にしておきます)
-        const map = L.map('map').setView([35.6812, 139.7671], 14);
+        // --- 2. 背景カラーを時々変える処理 ---
+        // インテリアに馴染みやすい、少しハスに構えた大人っぽいダークカラーのリスト
+        const colors = [
+            '#1a1a1a', // チャコールブラック
+            '#2c3e50', // ミッドナイトブルー
+            '#2e3d30', // モスグリーン
+            '#3a2a35', // ディープバーガンディ
+            '#232b2b', // カッパーオニキス
+            '#34495e'  // スレートグレー
+        ];
 
-        // OpenStreetMapのタイル（画像）レイヤーを追加
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        let colorIndex = 0;
 
-        // 現在地を示すマーカー
-        let currentMarker = null;
-
-        // 3. iPhoneのGPSから現在地を取得して地図を移動させる関数
-        function updateLocation() {
-            if (!navigator.geolocation) {
-                alert("お使いのブラウザは位置情報をサポートしていません");
-                return;
-            }
-
-            // 高精度で位置情報を追跡する
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // 地図の中心を現在地にする
-                    map.setView([lat, lng], 15);
-
-                    // 既存のマーカーがあれば削除して、新しい位置に置き直す
-                    if (currentMarker) {
-                        map.removeLayer(currentMarker);
-                    }
-                    currentMarker = L.marker([lat, lng]).addTo(map)
-                        .bindPopup("ここにいます")
-                        .openPopup();
-                },
-                (error) => {
-                    console.error("位置情報の取得に失敗しました:", error);
-                },
-                {
-                    enableHighAccuracy: true, // 高精度GPSを使用
-                    timeout: 5000,
-                    maximumAge: 0
-                }
-            );
+        function changeBackgroundColor() {
+            document.body.style.backgroundColor = colors[colorIndex];
+            // 次のカラーへ（最後までいったら最初に戻る）
+            colorIndex = (colorIndex + 1) % colors.length;
         }
 
-        // 地図が読み込まれたら位置情報の追跡を開始
-        updateLocation();
+        // 300000ミリ秒（5分ごと）に背景色を切り替える
+        // テスト用にもっと早く変えたい場合は、ここを 10000 (10秒) などにしてみてください
+        setInterval(changeBackgroundColor, 300000);
+        changeBackgroundColor(); // 初回実行
     </script>
 </body>
+
 </html>
